@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+python-telegram-bot
+pydantic-settings
+pymongo[srv]
+openai>=1.40.0
+firecrawl-py
+elevenlabs
+
+# Testing
+pytest
+pytest-cov
+pytest-asyncio
+pytest-mock
+httpx
