@@ -1,12 +1,22 @@
+import os
 from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
-    TELEGRAM_TOKEN: str
+    # Core settings
+    TELEGRAM_TOKEN: str = "test_token"  # Default for testing
     PROJECT_NAME: str = "Promo Section Bot"
     API_V1_STR: str = "/api/v1"
     PORT: int = 8080
+    ENVIRONMENT: str = "development"
+    
+    # Database settings
     MONGODB_URI: str | None = None
-    PUBLIC_BASE_URL: str | None = None  # e.g., https://your.domain.com
+    SUPABASE_URL: str | None = None
+    SUPABASE_KEY: str | None = None
+    SUPABASE_SERVICE_ROLE_KEY: str | None = None  # Added missing field
+    
+    # External API settings
+    PUBLIC_BASE_URL: str | None = None 
     OPENROUTER_API_KEY: str | None = None
     OPENROUTER_MODEL: str = "openai/gpt-4o-mini"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
@@ -20,8 +30,13 @@ class Settings(BaseSettings):
     OPENROUTER_SITE_TITLE: str | None = None
     FIRECRAWL_API_KEY: str | None = None
     ELEVEN_LAB_API_KEY: str | None = None
+    
+    # Testing settings
+    DISABLE_EXTERNAL_CALLS: bool = False
+    
+    # LLM settings
     LLM_SYSTEM_PROMPT: str = (
-        "You are Aspire, a friendly study companion for Computer Science students. "
+        "You are NerdMate, a friendly study companion for Computer Science students. "
         "Be concise, clear, and practical. Use simple language without markdown formatting "
         "(no *, #, **, etc.). Write in plain text with natural paragraphs. "
         "Provide step-by-step guidance and examples. Be encouraging and honest. "
@@ -31,5 +46,27 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Allow extra fields to be ignored instead of forbidden
 
-settings = Settings()
+def get_settings() -> Settings:
+    """Get settings with environment-specific configuration."""
+    env = os.getenv("ENVIRONMENT", "development")
+    
+    if env == "test":
+        # Use test-specific env file if it exists
+        if os.path.exists(".env.test"):
+            return Settings(_env_file=".env.test")
+        else:
+            # Use test defaults
+            return Settings(
+                TELEGRAM_TOKEN="test_token",
+                FIRECRAWL_API_KEY="test_key",
+                ELEVEN_LAB_API_KEY="test_key",
+                OPENROUTER_API_KEY="test_key",
+                DISABLE_EXTERNAL_CALLS=True,
+                ENVIRONMENT="test"
+            )
+    
+    return Settings()
+
+settings = get_settings()
