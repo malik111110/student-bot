@@ -1,0 +1,56 @@
+name: Code Quality
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  code-quality:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8 mypy bandit
+        pip install -r requirements.txt
+
+    - name: Format code with black
+      run: black --check --diff .
+
+    - name: Sort imports with isort
+      run: isort --check-only --diff .
+
+    - name: Lint with flake8
+      run: |
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+
+    - name: Type check with mypy
+      run: mypy . --ignore-missing-imports --no-strict-optional
+      continue-on-error: true
+
+    - name: Security check with bandit
+      run: bandit -r . -ll
+
+    - name: Check for common security issues
+      run: |
+        # Check for hardcoded secrets (basic patterns)
+        if grep -r "password\s*=\s*['\"][^'\"]*['\"]" --include="*.py" .; then
+          echo "Warning: Potential hardcoded passwords found"
+          exit 1
+        fi
+        
+        if grep -r "api_key\s*=\s*['\"][^'\"]*['\"]" --include="*.py" .; then
+          echo "Warning: Potential hardcoded API keys found"
+          exit 1
+        fi

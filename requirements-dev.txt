@@ -1,0 +1,44 @@
+# Development and testing dependencies
+
+# Testing framework
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+pytest-xdist>=3.3.0  # For parallel test execution
+
+# Code quality
+black>=23.7.0
+isort>=5.12.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+# Security
+bandit>=1.7.5
+safety>=2.3.0
+
+# Pre-commit hooks
+pre-commit>=3.3.0
+
+# Type stubs
+types-requests>=2.31.0
+types-PyYAML>=6.0.0
+
+# Development tools
+ipython>=8.14.0  # Better REPL
+ipdb>=0.13.0     # Debugger
+
+# HTTP testing
+httpx>=0.24.0    # For testing HTTP clients
+responses>=0.23.0  # Mock HTTP responses
+
+# Performance testing
+locust>=2.15.0   # Load testing (optional)
+
+# Documentation (optional)
+sphinx>=7.1.0
+sphinx-rtd-theme>=1.3.0
+
+# Jupyter notebooks (optional)
+jupyter>=1.0.0
+notebook>=6.5.0

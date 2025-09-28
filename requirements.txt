@@ -13,3 +13,7 @@ pytest-cov
 pytest-asyncio
 pytest-mock
 httpx
+
+# Supabase client
+# The PyPI package name is 'supabase' (supabase-py is outdated)
+supabase>=2.20.0

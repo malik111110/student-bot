@@ -1,0 +1,187 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache pip dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install flake8 black isort mypy
+
+    - name: Lint with flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=88 --statistics
+
+    - name: Check code formatting with black
+      run: black --check --diff .
+
+    - name: Check import sorting with isort
+      run: isort --check-only --diff .
+
+    - name: Type checking with mypy
+      run: mypy . --ignore-missing-imports --no-strict-optional
+      continue-on-error: true  # Allow mypy to fail for now
+
+    - name: Set up test environment
+      env:
+        TELEGRAM_TOKEN: "test_token"
+        PROJECT_NAME: "Test InfoSec Bot"
+        MONGODB_URI: "mongodb://localhost:27017/test"
+        SUPABASE_URL: "https://test.supabase.co"
+        SUPABASE_KEY: "test_key"
+        OPENROUTER_API_KEY: "test_key"
+        FIRECRAWL_API_KEY: "test_key"
+        ELEVEN_LAB_API_KEY: "test_key"
+      run: |
+        echo "Test environment configured"
+
+    - name: Run unit tests
+      env:
+        TELEGRAM_TOKEN: "test_token"
+        PROJECT_NAME: "Test InfoSec Bot"
+        MONGODB_URI: "mongodb://localhost:27017/test"
+        SUPABASE_URL: "https://test.supabase.co"
+        SUPABASE_KEY: "test_key"
+        OPENROUTER_API_KEY: "test_key"
+        FIRECRAWL_API_KEY: "test_key"
+        ELEVEN_LAB_API_KEY: "test_key"
+      run: |
+        pytest tests/unit/ -v --cov=core --cov=api --cov=bot --cov-report=xml
+
+    - name: Run integration tests
+      env:
+        TELEGRAM_TOKEN: "test_token"
+        PROJECT_NAME: "Test InfoSec Bot"
+        MONGODB_URI: "mongodb://localhost:27017/test"
+        SUPABASE_URL: "https://test.supabase.co"
+        SUPABASE_KEY: "test_key"
+        OPENROUTER_API_KEY: "test_key"
+        FIRECRAWL_API_KEY: "test_key"
+        ELEVEN_LAB_API_KEY: "test_key"
+        DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_db"
+      run: |
+        pytest tests/integration/ -v --cov-append --cov-report=xml
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+  security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety
+
+    - name: Run security scan with bandit
+      run: bandit -r . -f json -o bandit-report.json || true
+
+    - name: Check dependencies for vulnerabilities
+      run: safety check --json --output safety-report.json || true
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  build:
+    needs: [test, security]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/infosec-bot:latest
+          ${{ secrets.DOCKER_USERNAME }}/infosec-bot:${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+
+    steps:
+    - name: Deploy to production
+      run: |
+        echo "Deployment step - configure based on your hosting platform"
+        # Add your deployment commands here
+        # Examples:
+        # - Deploy to Railway, Render, or Heroku
+        # - Update Kubernetes deployment
+        # - Trigger webhook for deployment service

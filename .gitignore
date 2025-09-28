@@ -46,11 +46,14 @@ htmlcov/
 venv/
 env/
 
+
 # IDEs
 .vscode/
 .idea/
 .env.*
 !*.example
 .kiro
-data/
 scripts/
+data/
+supabase/.temp/
+.env.test
