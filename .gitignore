@@ -54,6 +54,9 @@ env/
 !*.example
 .kiro
 scripts/
-data/
+
 supabase/.temp/
 .env.test
+
+data/
+docs/

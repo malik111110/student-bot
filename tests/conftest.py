@@ -1,6 +1,7 @@
 """
 Pytest configuration and fixtures for InfoSec Bot tests.
 """
+
 import os
 import asyncio
 import pytest
@@ -41,7 +42,7 @@ def test_settings():
         ELEVEN_LAB_API_KEY="test_key",
         API_V1_STR="/api/v1",
         ENVIRONMENT="test",
-        DISABLE_EXTERNAL_CALLS=True
+        DISABLE_EXTERNAL_CALLS=True,
     )
 
 
@@ -56,13 +57,15 @@ def mock_bot():
     """Mock Telegram bot."""
     bot = MagicMock(spec=Bot)
     bot.token = "test_token"
-    bot.get_me = AsyncMock(return_value=User(
-        id=123456789,
-        first_name="InfoSec",
-        last_name="Bot",
-        username="infosec_bot",
-        is_bot=True
-    ))
+    bot.get_me = AsyncMock(
+        return_value=User(
+            id=123456789,
+            first_name="InfoSec",
+            last_name="Bot",
+            username="infosec_bot",
+            is_bot=True,
+        )
+    )
     bot.set_webhook = AsyncMock()
     bot.delete_webhook = AsyncMock()
     bot.get_webhook_info = AsyncMock()
@@ -92,38 +95,28 @@ def mock_user():
         first_name="Test",
         last_name="Student",
         username="test_student",
-        is_bot=False
+        is_bot=False,
     )
 
 
 @pytest.fixture
 def mock_chat():
     """Mock Telegram chat."""
-    return Chat(
-        id=12345,
-        type="private"
-    )
+    return Chat(id=12345, type="private")
 
 
 @pytest.fixture
 def mock_message(mock_user, mock_chat):
     """Mock Telegram message."""
     return Message(
-        message_id=1,
-        date=None,
-        chat=mock_chat,
-        from_user=mock_user,
-        text="/start"
+        message_id=1, date=None, chat=mock_chat, from_user=mock_user, text="/start"
     )
 
 
 @pytest.fixture
 def mock_update(mock_message):
     """Mock Telegram update."""
-    return Update(
-        update_id=1,
-        message=mock_message
-    )
+    return Update(update_id=1, message=mock_message)
 
 
 @pytest.fixture
@@ -161,7 +154,7 @@ def sample_student_data():
         "academic_year": 1,
         "telegram_id": 12345,
         "telegram_username": "test_student",
-        "status": "active"
+        "status": "active",
     }
 
 
@@ -177,7 +170,7 @@ def sample_course_data():
         "field_of_study_id": "456e7890-e89b-12d3-a456-426614174001",
         "academic_year": 1,
         "semester": 1,
-        "is_active": True
+        "is_active": True,
     }
 
 
@@ -190,7 +183,7 @@ def sample_professor_data():
         "last_name": "Smith",
         "email": "john.smith@university.edu",
         "title": "Professor",
-        "department": "Computer Science"
+        "department": "Computer Science",
     }
 
 
@@ -207,5 +200,5 @@ def sample_schedule_data():
         "title": "Introduction to Cryptography",
         "is_recurring": True,
         "recurrence_pattern": "weekly",
-        "status": "scheduled"
+        "status": "scheduled",
     }

@@ -18,14 +18,22 @@ def get_mongo_client() -> MongoClient:
     if not settings.MONGODB_URI:
         raise RuntimeError("MONGODB_URI is not configured in environment")
 
-    # Use basic MongoDB client configuration
-    # The SSL issues will be handled at the application level with fallback logging
+    # Enhanced MongoDB client configuration for macOS SSL compatibility
     _client = MongoClient(
         settings.MONGODB_URI, 
         server_api=ServerApi("1"),
         serverSelectionTimeoutMS=5000,  # Quick timeout to fail fast
         connectTimeoutMS=10000,
         socketTimeoutMS=20000,
+        # SSL/TLS configuration for macOS compatibility
+        tls=True,
+        tlsAllowInvalidCertificates=False,
+        tlsAllowInvalidHostnames=False,
+        # Retry configuration
+        retryWrites=True,
+        retryReads=True,
+        maxPoolSize=10,
+        minPoolSize=1,
     )
     return _client
 

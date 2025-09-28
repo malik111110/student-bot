@@ -34,6 +34,6 @@ Add any other context about the problem here.
 
 **Logs**
 If applicable, add relevant log entries:
-```
+```text
 Paste logs here
 ```

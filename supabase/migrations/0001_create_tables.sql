@@ -427,7 +427,7 @@ CREATE TABLE event_participants (
 -- User Profiles for Bot Personalization
 CREATE TABLE user_profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE UNIQUE,
+    student_id UUID NOT NULL UNIQUE REFERENCES students(id) ON DELETE CASCADE,
     
     -- Personal Preferences
     nickname TEXT,
