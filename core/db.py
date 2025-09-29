@@ -26,9 +26,16 @@ def get_mongo_client() -> MongoClient:
         connectTimeoutMS=10000,
         socketTimeoutMS=20000,
         # SSL/TLS configuration for macOS compatibility
-        tls=True,
-        tlsAllowInvalidCertificates=False,
-        tlsAllowInvalidHostnames=False,
+        # Add TLS kwargs only when explicitly enabled (e.g. via settings flag or URI options)
+        **(
+            dict(
+                tls=True,
+                tlsAllowInvalidCertificates=False,
+                tlsAllowInvalidHostnames=False,
+            )
+            if settings.ENABLE_MONGODB_TLS
+            else {}
+        ),
         # Retry configuration
         retryWrites=True,
         retryReads=True,
