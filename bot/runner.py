@@ -1,31 +1,33 @@
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
 from telegram import Update
-from core.config import Settings
+from telegram.ext import Application, CommandHandler, MessageHandler, filters
+
 from bot.handlers import (
-    start,
-    help_command,
-    professors,
-    courses,
-    schedule,
     ask,
-    voice,
     ask_voice,
-    resources,
-    examtips,
-    tools,
-    internships,
-    thesis,
-    events,
-    faqs,
+    courses,
     deadlines,
-    news,
+    events,
+    examtips,
+    faqs,
     hackernews,
-    technews,
-    news_sources,
+    help_command,
+    internships,
     my_news_profile,
+    news,
+    news_sources,
+    professors,
+    resources,
     save_message,
+    schedule,
+    start,
+    technews,
+    thesis,
+    tools,
+    voice,
 )
+from core.config import Settings
 from core.db import get_db
+
 
 def create_bot_app(settings: Settings) -> Application:
     """Creates and configures the Telegram bot application."""
@@ -55,6 +57,8 @@ def create_bot_app(settings: Settings) -> Application:
     application.add_handler(CommandHandler("mynews", my_news_profile))
 
     # Persist non-command text messages to MongoDB
-    application.add_handler(MessageHandler(filters.TEXT & (~filters.COMMAND), save_message))
+    application.add_handler(
+        MessageHandler(filters.TEXT & (~filters.COMMAND), save_message)
+    )
 
     return application

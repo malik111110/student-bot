@@ -8,8 +8,8 @@ helper here for data migrations and simple queries.
 Note: This file depends on `supabase.client` from `supabase-py` (>=1.0.0).
 """
 
-from typing import Optional
 import os
+from typing import Optional
 
 from supabase import create_client  # type: ignore
 

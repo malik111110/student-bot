@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 try:
     from openai import AsyncOpenAI
@@ -19,7 +19,9 @@ def _build_client() -> AsyncOpenAI:
     )
 
 
-async def chat_completion(messages: List[Dict[str, str]], model: str | None = None, max_tokens: int = 512) -> str:
+async def chat_completion(
+    messages: List[Dict[str, str]], model: str | None = None, max_tokens: int = 512
+) -> str:
     client = _build_client()
     chosen_model = model or settings.OPENROUTER_MODEL
     headers: Dict[str, str] = {}
@@ -33,8 +35,10 @@ async def chat_completion(messages: List[Dict[str, str]], model: str | None = No
     final_messages = [system_msg] + messages
 
     # Try the chosen model first, then fallback models if it fails
-    models_to_try = [chosen_model] + [m for m in settings.OPENROUTER_FALLBACK_MODELS if m != chosen_model]
-    
+    models_to_try = [chosen_model] + [
+        m for m in settings.OPENROUTER_FALLBACK_MODELS if m != chosen_model
+    ]
+
     last_error = None
     for model_name in models_to_try:
         try:
@@ -53,9 +57,7 @@ async def chat_completion(messages: List[Dict[str, str]], model: str | None = No
             last_error = e
             print(f"Model {model_name} failed: {e}")
             continue
-    
+
     # If all models failed, raise the last error
     print(f"All models failed. Last error: {last_error}")
     raise last_error
-
-

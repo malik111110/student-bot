@@ -1,6 +1,7 @@
 """
 Tests for core configuration module.
 """
+
 import pytest
 from pydantic import ValidationError
 
@@ -15,9 +16,9 @@ class TestSettings:
         settings = Settings(
             TELEGRAM_TOKEN="test_token",
             SUPABASE_URL="https://test.supabase.co",
-            SUPABASE_KEY="test_key"
+            SUPABASE_KEY="test_key",
         )
-        
+
         assert settings.TELEGRAM_TOKEN == "test_token"
         assert settings.PROJECT_NAME == "Promo Section Bot"
         assert settings.API_V1_STR == "/api/v1"
@@ -44,9 +45,9 @@ class TestSettings:
             ELEVEN_LAB_API_KEY="test_elevenlabs",
             SUPABASE_URL="https://test.supabase.co",
             SUPABASE_KEY="test_key",
-            SUPABASE_SERVICE_ROLE_KEY="test_service_key"
+            SUPABASE_SERVICE_ROLE_KEY="test_service_key",
         )
-        
+
         assert settings.PROJECT_NAME == "Test Bot"
         assert settings.API_V1_STR == "/api/v2"
         assert settings.OPENROUTER_MODEL == "test_model"
@@ -56,9 +57,9 @@ class TestSettings:
         monkeypatch.setenv("TELEGRAM_TOKEN", "env_token")
         monkeypatch.setenv("SUPABASE_URL", "https://env.supabase.co")
         monkeypatch.setenv("SUPABASE_KEY", "env_key")
-        
+
         settings = Settings()
-        
+
         assert settings.TELEGRAM_TOKEN == "env_token"
         assert settings.SUPABASE_URL == "https://env.supabase.co"
         assert settings.SUPABASE_KEY == "env_key"

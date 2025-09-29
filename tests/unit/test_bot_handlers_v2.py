@@ -1,21 +1,23 @@
-import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
 from bot.handlers import (
-    professors,
-    check_student,
-    start,
-    help_command,
-    courses,
-    schedule,
     ask,
-    resources,
-    examtips,
-    tools,
-    internships,
-    thesis,
-    events,
-    faqs,
+    check_student,
+    courses,
     deadlines,
+    events,
+    examtips,
+    faqs,
+    help_command,
+    internships,
+    professors,
+    resources,
+    schedule,
+    start,
+    thesis,
+    tools,
 )
 
 # Sample student data for mocking
@@ -24,6 +26,7 @@ MOCK_STUDENTS = [
     {"id": "02", "complete_name": "Jane Smith", "field": "RSD"},
 ]
 
+
 @pytest.fixture
 def mock_update_context():
     """Fixture to create mock update and context objects."""
@@ -31,7 +34,7 @@ def mock_update_context():
     update.message = AsyncMock()
     update.effective_chat = MagicMock()
     update.effective_chat.id = 123
-    
+
     context = AsyncMock()
     context.bot = AsyncMock()
     context.user_data = {}
@@ -39,8 +42,9 @@ def mock_update_context():
 
     return update, context
 
+
 @pytest.mark.asyncio
-@patch('bot.handlers.load_json_data', return_value=MOCK_STUDENTS)
+@patch("bot.handlers.load_json_data", return_value=MOCK_STUDENTS)
 async def test_check_student_decorator_authorized(mock_load_data, mock_update_context):
     """Test that the check_student decorator allows authorized users."""
     update, context = mock_update_context
@@ -56,9 +60,12 @@ async def test_check_student_decorator_authorized(mock_load_data, mock_update_co
     assert "student_info" in context.user_data
     assert context.user_data["student_info"]["complete_name"] == "John Doe"
 
+
 @pytest.mark.asyncio
-@patch('bot.handlers.load_json_data', return_value=MOCK_STUDENTS)
-async def test_check_student_decorator_unauthorized(mock_load_data, mock_update_context):
+@patch("bot.handlers.load_json_data", return_value=MOCK_STUDENTS)
+async def test_check_student_decorator_unauthorized(
+    mock_load_data, mock_update_context
+):
     """Test that the check_student decorator blocks unauthorized users."""
     update, context = mock_update_context
     update.effective_user = MagicMock(first_name="Unknown", last_name="User")
@@ -70,14 +77,20 @@ async def test_check_student_decorator_unauthorized(mock_load_data, mock_update_
 
     await dummy_handler(update, context)
 
-    update.message.reply_text.assert_awaited_with("Access denied. You are not in the students list. Please contact the admin.")
+    update.message.reply_text.assert_awaited_with(
+        "Access denied. You are not in the students list. Please contact the admin."
+    )
+
 
 @pytest.mark.asyncio
 async def test_start_command(mock_update_context):
     """Test the simplified start command."""
     update, context = mock_update_context
     await start(update, context)
-    update.message.reply_text.assert_awaited_with("Welcome to the InfoSec Promo Bot!\nUse /help to see available commands.")
+    update.message.reply_text.assert_awaited_with(
+        "Welcome to the InfoSec Promo Bot!\nUse /help to see available commands."
+    )
+
 
 @pytest.mark.asyncio
 async def test_help_command(mock_update_context):
@@ -90,13 +103,16 @@ async def test_help_command(mock_update_context):
     assert "/whoami" not in call_args
     assert "/logout" not in call_args
 
+
 @pytest.mark.asyncio
-@patch('bot.handlers.load_json_data')
+@patch("bot.handlers.load_json_data")
 async def test_professors_command_authorized(mock_load_data, mock_update_context):
     """Test the professors command with an authorized user."""
     mock_load_data.side_effect = [
         MOCK_STUDENTS,  # First call from check_student
-        [{"name": "Test Prof", "email": "test@test.com"}]  # Second call from professors
+        [
+            {"name": "Test Prof", "email": "test@test.com"}
+        ],  # Second call from professors
     ]
     update, context = mock_update_context
     update.effective_user = MagicMock(first_name="John", last_name="Doe")
@@ -104,13 +120,16 @@ async def test_professors_command_authorized(mock_load_data, mock_update_context
     await professors(update, context)
 
     context.bot.send_message.assert_awaited()
-    call_args = context.bot.send_message.call_args[1]['text']
+    call_args = context.bot.send_message.call_args[1]["text"]
     assert "Professor Contacts" in call_args
     assert "Test Prof" in call_args
 
+
 @pytest.mark.asyncio
-@patch('bot.handlers.load_json_data', return_value=MOCK_STUDENTS)
-async def test_check_student_decorator_case_insensitive(mock_load_data, mock_update_context):
+@patch("bot.handlers.load_json_data", return_value=MOCK_STUDENTS)
+async def test_check_student_decorator_case_insensitive(
+    mock_load_data, mock_update_context
+):
     """Test that the check_student decorator is case-insensitive."""
     update, context = mock_update_context
     update.effective_user = MagicMock(first_name="jOhN", last_name="dOe")
@@ -125,8 +144,9 @@ async def test_check_student_decorator_case_insensitive(mock_load_data, mock_upd
     assert "student_info" in context.user_data
     assert context.user_data["student_info"]["complete_name"] == "John Doe"
 
+
 @pytest.mark.asyncio
-@patch('bot.handlers.load_json_data')
+@patch("bot.handlers.load_json_data")
 async def test_courses_command_authorized(mock_load_data, mock_update_context):
     """Test the courses command with an authorized user."""
     mock_programs = {
@@ -146,22 +166,21 @@ async def test_courses_command_authorized(mock_load_data, mock_update_context):
                                             {"name": "Course 2"},
                                         ]
                                     }
-                                ]
+                                ],
                             }
-                        ]
+                        ],
                     }
-                ]
+                ],
             }
         ]
     }
     mock_load_data.side_effect = [
         MOCK_STUDENTS,  # First call from check_student
-        mock_programs  # Second call from courses
+        mock_programs,  # Second call from courses
     ]
     update, context = mock_update_context
     update.effective_user = MagicMock(first_name="John", last_name="Doe")
     context.user_data = {"student_info": {"field": "Resin"}}
-
 
     await courses(update, context)
 
@@ -171,8 +190,9 @@ async def test_courses_command_authorized(mock_load_data, mock_update_context):
     assert "Course 1" in call_args
     assert "Course 2" in call_args
 
+
 @pytest.mark.asyncio
-@patch('bot.handlers.load_json_data')
+@patch("bot.handlers.load_json_data")
 async def test_schedule_command_authorized(mock_load_data, mock_update_context):
     """Test the schedule command with an authorized user."""
     mock_schedule = {
@@ -182,7 +202,7 @@ async def test_schedule_command_authorized(mock_load_data, mock_update_context):
     }
     mock_load_data.side_effect = [
         MOCK_STUDENTS,  # First call from check_student
-        mock_schedule  # Second call from schedule
+        mock_schedule,  # Second call from schedule
     ]
     update, context = mock_update_context
     update.effective_user = MagicMock(first_name="John", last_name="Doe")
@@ -195,10 +215,13 @@ async def test_schedule_command_authorized(mock_load_data, mock_update_context):
     assert "Monday" in call_args
     assert "Course 1" in call_args
 
+
 @pytest.mark.asyncio
-@patch('bot.handlers.chat_completion', return_value="This is a test answer.")
-@patch('bot.handlers.load_json_data', return_value=MOCK_STUDENTS)
-async def test_ask_command_authorized(mock_load_data, mock_chat_completion, mock_update_context):
+@patch("bot.handlers.chat_completion", return_value="This is a test answer.")
+@patch("bot.handlers.load_json_data", return_value=MOCK_STUDENTS)
+async def test_ask_command_authorized(
+    mock_load_data, mock_chat_completion, mock_update_context
+):
     """Test the ask command with an authorized user."""
     update, context = mock_update_context
     update.effective_user = MagicMock(first_name="John", last_name="Doe")
@@ -206,23 +229,25 @@ async def test_ask_command_authorized(mock_load_data, mock_chat_completion, mock
 
     await ask(update, context)
 
-    context.bot.send_message.assert_awaited_with(chat_id=123, text="This is a test answer.")
+    context.bot.send_message.assert_awaited_with(
+        chat_id=123, text="This is a test answer."
+    )
+
 
 @pytest.mark.asyncio
-@patch('bot.handlers.load_json_data')
+@patch("bot.handlers.load_json_data")
 async def test_resources_command_authorized(mock_load_data, mock_update_context):
     """Test the resources command with an authorized user."""
-    mock_resources = {"roadmaps": [{"name": "Test Roadmap", "url": "http://example.com"}]}
-    mock_load_data.side_effect = [
-        MOCK_STUDENTS,
-        mock_resources
-    ]
+    mock_resources = {
+        "roadmaps": [{"name": "Test Roadmap", "url": "http://example.com"}]
+    }
+    mock_load_data.side_effect = [MOCK_STUDENTS, mock_resources]
     update, context = mock_update_context
     update.effective_user = MagicMock(first_name="John", last_name="Doe")
 
     await resources(update, context)
 
     context.bot.send_message.assert_awaited()
-    call_args = context.bot.send_message.call_args[1]['text']
+    call_args = context.bot.send_message.call_args[1]["text"]
     assert "Top Resources" in call_args
     assert "Test Roadmap" in call_args

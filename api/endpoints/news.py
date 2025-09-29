@@ -1,11 +1,14 @@
-from fastapi import APIRouter, HTTPException, Query
-from typing import List, Dict, Any, Optional
-from core.news_scraper import get_news_scraper
 import logging
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, HTTPException, Query
+
+from core.news_scraper import get_news_scraper
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
 
 @router.get("/sources")
 async def get_news_sources():
@@ -16,10 +19,15 @@ async def get_news_sources():
         return {"sources": sources}
     except Exception as e:
         logger.error(f"Error getting news sources: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error getting news sources: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error getting news sources: {str(e)}"
+        )
+
 
 @router.get("/hackernews")
-async def get_hacker_news(limit: int = Query(5, ge=1, le=20, description="Number of articles to fetch")):
+async def get_hacker_news(
+    limit: int = Query(5, ge=1, le=20, description="Number of articles to fetch")
+):
     """Get latest news from Hacker News."""
     try:
         scraper = get_news_scraper()
@@ -27,34 +35,44 @@ async def get_hacker_news(limit: int = Query(5, ge=1, le=20, description="Number
         return result
     except Exception as e:
         logger.error(f"Error fetching Hacker News: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching Hacker News: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching Hacker News: {str(e)}"
+        )
+
 
 @router.get("/technews/{source}")
 async def get_tech_news(
     source: str,
-    limit: int = Query(5, ge=1, le=20, description="Number of articles to fetch")
+    limit: int = Query(5, ge=1, le=20, description="Number of articles to fetch"),
 ):
     """Get tech news from a specific source."""
     try:
         scraper = get_news_scraper()
         available_sources = scraper.get_available_sources()
-        
+
         if source not in available_sources:
             raise HTTPException(
-                status_code=400, 
-                detail=f"Unknown source: {source}. Available sources: {list(available_sources.keys())}"
+                status_code=400,
+                detail=f"Unknown source: {source}. Available sources: {list(available_sources.keys())}",
             )
-        
+
         result = await scraper.get_tech_news(source, limit=limit)
         return result
     except HTTPException:
         raise
     except Exception as e:
         logger.error(f"Error fetching tech news from {source}: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching tech news: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching tech news: {str(e)}"
+        )
+
 
 @router.get("/all")
-async def get_all_news(limit_per_source: int = Query(3, ge=1, le=10, description="Number of articles per source")):
+async def get_all_news(
+    limit_per_source: int = Query(
+        3, ge=1, le=10, description="Number of articles per source"
+    )
+):
     """Get news from all available sources."""
     try:
         scraper = get_news_scraper()
@@ -62,12 +80,15 @@ async def get_all_news(limit_per_source: int = Query(3, ge=1, le=10, description
         return result
     except Exception as e:
         logger.error(f"Error fetching all news: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Error fetching all news: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error fetching all news: {str(e)}"
+        )
+
 
 @router.post("/scrape")
 async def scrape_url(
     url: str,
-    formats: List[str] = Query(["markdown", "html"], description="Output formats")
+    formats: List[str] = Query(["markdown", "html"], description="Output formats"),
 ):
     """Scrape a specific URL."""
     try:
@@ -78,10 +99,11 @@ async def scrape_url(
         logger.error(f"Error scraping URL {url}: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error scraping URL: {str(e)}")
 
+
 @router.post("/crawl")
 async def crawl_website(
     url: str,
-    limit: int = Query(10, ge=1, le=50, description="Maximum number of pages to crawl")
+    limit: int = Query(10, ge=1, le=50, description="Maximum number of pages to crawl"),
 ):
     """Crawl a website for multiple pages."""
     try:

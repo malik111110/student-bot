@@ -1,9 +1,9 @@
+from typing import Dict, List
+
 from fastapi import APIRouter
 from pydantic import BaseModel
-from typing import List, Dict
 
 from core.llm import chat_completion
-
 
 router = APIRouter()
 
@@ -27,5 +27,3 @@ async def chat(req: ChatRequest):
         max_tokens=req.max_tokens,
     )
     return {"reply": result}
-
-
