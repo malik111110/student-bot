@@ -2,12 +2,13 @@
 Tests for Telegram bot handlers.
 """
 
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-from telegram import Update, Message, User, Chat
+from telegram import Chat, Message, Update, User
 from telegram.ext import ContextTypes
 
-from bot.handlers import start, help_command, schedule, professors, courses, news, ask
+from bot.handlers import ask, courses, help_command, news, professors, schedule, start
 
 
 @pytest.fixture

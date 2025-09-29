@@ -1,5 +1,6 @@
 from fastapi import APIRouter
-from api.endpoints import professors, courses, schedule, ai, news
+
+from api.endpoints import ai, courses, news, professors, schedule
 
 api_router = APIRouter()
 

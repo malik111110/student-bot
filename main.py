@@ -1,37 +1,45 @@
-import uvicorn
 import logging
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, HTTPException
+
+import uvicorn
+from fastapi import FastAPI, HTTPException, Request
 from telegram import Update
 
-from core.config import settings
 from api.router import api_router
 from bot.runner import create_bot_app
+from core.config import settings
 
 # Global variable to hold the bot application
 application = None
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global application
-    
+
     # Startup
     logging.basicConfig(level=logging.INFO)
     logging.info(f"Starting application. Environment: {settings.ENVIRONMENT}")
     logging.info(f"PUBLIC_BASE_URL={settings.PUBLIC_BASE_URL!r}")
-    
+
     # Only initialize bot if we have a valid token and not in test mode
-    if settings.TELEGRAM_TOKEN and settings.TELEGRAM_TOKEN != "test_token" and settings.ENVIRONMENT != "test":
+    if (
+        settings.TELEGRAM_TOKEN
+        and settings.TELEGRAM_TOKEN != "test_token"
+        and settings.ENVIRONMENT != "test"
+    ):
         try:
             application = create_bot_app(settings)
             logging.info(f"Computed WEBHOOK_URL={WEBHOOK_URL!r}")
             await application.initialize()
             await application.start()
-            
+
             # Set webhook if public URL is provided; otherwise, ensure webhook is deleted
             if WEBHOOK_URL:
                 try:
-                    await application.bot.set_webhook(url=WEBHOOK_URL, drop_pending_updates=True)
+                    await application.bot.set_webhook(
+                        url=WEBHOOK_URL, drop_pending_updates=True
+                    )
                     logging.info("Webhook set successfully")
                 except Exception as e:
                     logging.exception(f"Failed to set webhook: {e}")
@@ -46,12 +54,14 @@ async def lifespan(app: FastAPI):
             if settings.ENVIRONMENT == "production":
                 raise  # Fail fast in production
             else:
-                logging.warning("Bot initialization failed, continuing without bot functionality")
+                logging.warning(
+                    "Bot initialization failed, continuing without bot functionality"
+                )
     else:
         logging.info("Bot initialization skipped (test mode or invalid token)")
-    
+
     yield
-    
+
     # Shutdown
     if application:
         try:
@@ -64,10 +74,11 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             logging.error(f"Error during bot shutdown: {e}")
 
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
@@ -79,9 +90,11 @@ if settings.PUBLIC_BASE_URL:
 else:
     WEBHOOK_URL = None
 
+
 @app.get("/", summary="Health check")
 def root():
     return {"status": "ok"}
+
 
 @app.post(WEBHOOK_PATH)
 async def telegram_webhook(request: Request):
@@ -102,6 +115,7 @@ async def telegram_webhook(request: Request):
     await application.process_update(update)
     return {"ok": True}
 
+
 @app.get("/telegram/webhook-info", summary="Inspect Telegram webhook info")
 async def telegram_webhook_info():
     if not application:
@@ -109,7 +123,10 @@ async def telegram_webhook_info():
     info = await application.bot.get_webhook_info()
     return info.to_dict()
 
-@app.post("/telegram/reset-webhook", summary="Reset Telegram webhook based on PUBLIC_BASE_URL")
+
+@app.post(
+    "/telegram/reset-webhook", summary="Reset Telegram webhook based on PUBLIC_BASE_URL"
+)
 async def telegram_reset_webhook():
     if not application:
         raise HTTPException(status_code=503, detail="Bot not initialized")
@@ -119,6 +136,7 @@ async def telegram_reset_webhook():
     else:
         await application.bot.delete_webhook(drop_pending_updates=True)
         return {"ok": True, "action": "deleted"}
+
 
 if __name__ == "__main__":
     host = "127.0.0.1"

@@ -2,21 +2,22 @@
 Pytest configuration and fixtures for InfoSec Bot tests.
 """
 
-import os
 import asyncio
+import os
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 import pytest_asyncio
-from unittest.mock import AsyncMock, MagicMock
 from fastapi.testclient import TestClient
-from telegram import Bot, Update, Message, User, Chat
+from telegram import Bot, Chat, Message, Update, User
 from telegram.ext import Application
 
 # Set test environment before importing app
 os.environ["ENVIRONMENT"] = "test"
 os.environ["DISABLE_EXTERNAL_CALLS"] = "true"
 
-from main import app
 from core.config import Settings
+from main import app
 
 
 @pytest.fixture(scope="session")

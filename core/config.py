@@ -1,5 +1,7 @@
 import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     # Core settings
@@ -8,15 +10,15 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     PORT: int = 8080
     ENVIRONMENT: str = "development"
-    
+
     # Database settings
     MONGODB_URI: str | None = None
     SUPABASE_URL: str | None = None
     SUPABASE_KEY: str | None = None
     SUPABASE_SERVICE_ROLE_KEY: str | None = None  # Added missing field
-    
+
     # External API settings
-    PUBLIC_BASE_URL: str | None = None 
+    PUBLIC_BASE_URL: str | None = None
     OPENROUTER_API_KEY: str | None = None
     OPENROUTER_MODEL: str = "openai/gpt-4o-mini"
     OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
@@ -24,16 +26,16 @@ class Settings(BaseSettings):
         "openai/gpt-4o-mini",
         "meta-llama/llama-3.2-3b-instruct:free",
         "microsoft/phi-3-mini-128k-instruct:free",
-        "google/gemma-2-9b-it:free"
+        "google/gemma-2-9b-it:free",
     ]
     OPENROUTER_SITE_URL: str | None = None
     OPENROUTER_SITE_TITLE: str | None = None
     FIRECRAWL_API_KEY: str | None = None
     ELEVEN_LAB_API_KEY: str | None = None
-    
+
     # Testing settings
     DISABLE_EXTERNAL_CALLS: bool = False
-    
+
     # LLM settings
     LLM_SYSTEM_PROMPT: str = (
         "You are NerdMate, a friendly study companion for Computer Science students. "
@@ -44,12 +46,13 @@ class Settings(BaseSettings):
         "and student-friendly, avoiding technical jargon when possible."
     )
 
-    model_config = SettingsConfigDict(env_file='.env', extra='ignore')
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
 
 def get_settings() -> Settings:
     """Get settings with environment-specific configuration."""
     env = os.getenv("ENVIRONMENT", "development")
-    
+
     if env == "test":
         # Use test-specific env file if it exists
         if os.path.exists(".env.test"):
@@ -62,15 +65,16 @@ def get_settings() -> Settings:
                 ELEVEN_LAB_API_KEY="test_key",
                 OPENROUTER_API_KEY="test_key",
                 DISABLE_EXTERNAL_CALLS=True,
-                ENVIRONMENT="test"
+                ENVIRONMENT="test",
             )
-    
+
     # For production, ensure required tokens are set
     settings_instance = Settings()
     if env == "production":
         if settings_instance.TELEGRAM_TOKEN == "test_token":
             raise ValueError("TELEGRAM_TOKEN must be set for production environment")
-    
+
     return settings_instance
+
 
 settings = get_settings()
