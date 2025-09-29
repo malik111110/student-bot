@@ -21,7 +21,6 @@ def get_mongo_client() -> MongoClient:
     # Enhanced MongoDB client configuration for macOS SSL compatibility
     _client = MongoClient(
         settings.MONGODB_URI, 
-        server_api=ServerApi("1"),
         serverSelectionTimeoutMS=5000,  # Quick timeout to fail fast
         connectTimeoutMS=10000,
         socketTimeoutMS=20000,
