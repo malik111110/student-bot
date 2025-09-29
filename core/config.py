@@ -1,5 +1,5 @@
 import os
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # Core settings
@@ -44,9 +44,7 @@ class Settings(BaseSettings):
         "and student-friendly, avoiding technical jargon when possible."
     )
 
-    class Config:
-        env_file = ".env"
-        extra = "ignore"  # Allow extra fields to be ignored instead of forbidden
+    model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 
 def get_settings() -> Settings:
     """Get settings with environment-specific configuration."""
@@ -67,6 +65,12 @@ def get_settings() -> Settings:
                 ENVIRONMENT="test"
             )
     
-    return Settings()
+    # For production, ensure required tokens are set
+    settings_instance = Settings()
+    if env == "production":
+        if settings_instance.TELEGRAM_TOKEN == "test_token":
+            raise ValueError("TELEGRAM_TOKEN must be set for production environment")
+    
+    return settings_instance
 
 settings = get_settings()

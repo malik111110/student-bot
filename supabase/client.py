@@ -7,14 +7,11 @@ helper here for data migrations and simple queries.
 
 Note: This file depends on `supabase.client` from `supabase-py` (>=1.0.0).
 """
+
 from typing import Optional
 import os
 
 from supabase import create_client  # type: ignore
-
-
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 _client = None
 
@@ -30,7 +27,11 @@ def get_client():
     """
     global _client
     if _client is None:
+        SUPABASE_URL = os.getenv("SUPABASE_URL")
+        SUPABASE_KEY = os.getenv("SUPABASE_KEY")
         if not SUPABASE_URL or not SUPABASE_KEY:
-            raise RuntimeError("SUPABASE_URL and SUPABASE_KEY must be set in environment")
+            raise RuntimeError(
+                "SUPABASE_URL and SUPABASE_KEY must be set in environment"
+            )
         _client = create_client(SUPABASE_URL, SUPABASE_KEY)
     return _client

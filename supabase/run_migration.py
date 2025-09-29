@@ -48,18 +48,13 @@ def main():
                 print(f"Error executing statement: {str(stmt_error)}")
                 return 1
         else:
-            # Split the SQL into individual statements
-            statements = sql.split(';')
-            
-            for statement in statements:
-                # Skip empty statements
-                if statement.strip():
-                    try:
-                        result = client.postgrest.rpc('exec_sql', {'sql_string': statement}).execute()
-                        print(f"Executed statement successfully")
-                    except Exception as stmt_error:
-                        print(f"Error executing statement: {str(stmt_error)}")
-                        return 1
+            # Execute the entire SQL file as one statement to handle complex SQL properly
+            try:
+                result = client.postgrest.rpc('exec_sql', {'sql_string': sql}).execute()
+                print(f"Executed migration successfully")
+            except Exception as stmt_error:
+                print(f"Error executing migration: {str(stmt_error)}")
+                return 1
         
         print("Migration completed successfully")
         return 0

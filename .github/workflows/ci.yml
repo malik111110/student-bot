@@ -36,7 +36,7 @@ jobs:
         python-version: ${{ env.PYTHON_VERSION }}
 
     - name: Cache pip dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
@@ -68,6 +68,7 @@ jobs:
 
     - name: Set up test environment
       env:
+        ENVIRONMENT: "test"
         TELEGRAM_TOKEN: "test_token"
         PROJECT_NAME: "Test InfoSec Bot"
         MONGODB_URI: "mongodb://localhost:27017/test"
@@ -81,6 +82,7 @@ jobs:
 
     - name: Run unit tests
       env:
+        ENVIRONMENT: "test"
         TELEGRAM_TOKEN: "test_token"
         PROJECT_NAME: "Test InfoSec Bot"
         MONGODB_URI: "mongodb://localhost:27017/test"
@@ -94,6 +96,7 @@ jobs:
 
     - name: Run integration tests
       env:
+        ENVIRONMENT: "test"
         TELEGRAM_TOKEN: "test_token"
         PROJECT_NAME: "Test InfoSec Bot"
         MONGODB_URI: "mongodb://localhost:27017/test"
@@ -107,7 +110,7 @@ jobs:
         pytest tests/integration/ -v --cov-append --cov-report=xml
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./coverage.xml
         flags: unittests
@@ -119,7 +122,7 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
@@ -135,7 +138,7 @@ jobs:
       run: safety check --json --output safety-report.json || true
 
     - name: Upload security reports
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: security-reports
         path: |

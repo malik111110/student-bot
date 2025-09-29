@@ -102,10 +102,12 @@ async def save_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             import os
             
             log_file = "message_backup.jsonl"
-            message_data["date"] = message_data["date"].isoformat()  # Make JSON serializable
+            # Create a copy for JSON serialization to avoid modifying original
+            json_data = message_data.copy()
+            json_data["date"] = json_data["date"].isoformat()  # Make JSON serializable
             
             with open(log_file, "a", encoding="utf-8") as f:
-                f.write(json.dumps(message_data) + "\n")
+                f.write(json.dumps(json_data) + "\n")
             
             print(f"📝 Message saved to local file: {log_file}")
         
@@ -239,20 +241,80 @@ async def courses(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 @check_student
 async def schedule(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Fetches and displays the weekly schedule."""
+    """Fetches and displays the weekly schedule based on student's field."""
     data = load_json_data("schedule.json")
     if not data:
         await update.message.reply_text("Could not retrieve schedule data.")
         return
 
-    message = "Weekly Schedule:\n\n"
-    for day, classes in data.items():
-        message += f"🗓️ {day.capitalize()}:\n"
-        for item in classes:
-            message += f"  - {item['time']}: {item['course']} ({item['professor']})\n"
-        message += "\n"
-
-    await update.message.reply_text(message)
+    # Get student's field from user data
+    student_info = context.user_data.get("student_info", {})
+    field = student_info.get("field", "")
+    
+    # Map field to schedule key
+    field_mapping = {
+        "Sécurité informatique": "securite_informatique",
+        "Intelligence Artificielle": "intelligence_artificielle", 
+        "Sciences des Données": "data_science",
+        "RSD": "RSD",
+        "Resin": "resin"
+    }
+    
+    schedule_key = field_mapping.get(field)
+    
+    if not schedule_key or schedule_key not in data:
+        # Show all available programs if field not found
+        available_programs = list(data.keys())
+        message = f"Schedule not found for your field: {field}\n\n"
+        message += "Available programs:\n"
+        for program in available_programs:
+            message += f"- {program.replace('_', ' ').title()}\n"
+        await update.message.reply_text(message)
+        return
+    
+    program_schedule = data[schedule_key]
+    program_name = schedule_key.replace('_', ' ').title()
+    
+    message = f"📅 Weekly Schedule - {program_name}:\n\n"
+    
+    # Days in order
+    days_order = ["saturday", "sunday", "monday", "tuesday", "wednesday", "thursday"]
+    day_names = {
+        "saturday": "Saturday",
+        "sunday": "Sunday", 
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday"
+    }
+    
+    for day in days_order:
+        if day in program_schedule:
+            classes = program_schedule[day]
+            message += f"🗓️ {day_names[day]}:\n"
+            
+            if not classes:
+                message += "  No classes scheduled\n"
+            else:
+                for item in classes:
+                    time = item.get('time', 'TBD')
+                    course = item.get('course', 'Unknown Course')
+                    professor = item.get('professor', 'TBD')
+                    room = item.get('room', '')
+                    
+                    prof_text = f" ({professor})" if professor else ""
+                    room_text = f" - {room}" if room else ""
+                    
+                    message += f"  ⏰ {time}: {course}{prof_text}{room_text}\n"
+            message += "\n"
+    
+    # Send in chunks if too long
+    MAX_LEN = 4000
+    start = 0
+    while start < len(message):
+        chunk = message[start:start+MAX_LEN]
+        await update.message.reply_text(chunk)
+        start += MAX_LEN
 
 @check_student
 async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
